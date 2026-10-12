@@ -1,0 +1,12 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const folders=process.argv.slice(2);assert.equal(folders.length,2);
+(async()=>{for(const root of folders){const info=JSON.parse(fs.readFileSync(path.join(root,'.runtime.json'),'utf8')),request=async name=>{const response=await fetch(new URL(name,info.url));const bytes=await response.arrayBuffer();return new Response(bytes,{status:response.status,headers:response.headers});};
+ assert.equal(await (await request('api/state')).json(),null,'New release must have no prior state');
+ assert.equal((await (await request('api/key')).json()).key,'','New release must have no saved key');
+ const html=await (await request('index.html')).text();assert.match(html,/js\/app\.js/);assert.match(html,/css\/fees\.css/);
+ for(const asset of [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(m=>m[1]))assert.equal((await request(asset)).status,200,asset);
+ for(const file of ['server/local-server.ps1','tests/engine.test.cjs','数据/周期存档/完整存档.json','数据/输入/private.xlsx','数据/输出/备份数据/private.json','.runtime.json','../README.md'])assert.equal((await request(file)).status,404,file);
+ for(const dir of ['输入','输出/导出表格','输出/备份数据','周期存档'])assert.ok(fs.existsSync(path.join(root,'数据',dir)),dir);
+ const status=await (await request('api/status')).json();assert.equal(status.root,path.resolve(root));assert.equal(status.canShutdown,true);assert.equal(status.keyStorage,true);
+ }console.log('Clean startup, frontend paths, separate input/output and HTTP access checks passed.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

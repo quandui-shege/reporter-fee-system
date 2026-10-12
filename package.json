@@ -1,0 +1,14 @@
+{
+  "name": "reporter-fee-system",
+  "version": "2.0.0",
+  "private": true,
+  "description": "记者团稿费统计系统：Windows 本地服务与离线网页",
+  "scripts": {
+    "test": "node scripts/test.cjs",
+    "test:integration": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-integration.ps1",
+    "audit:release": "node scripts/audit-release.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
